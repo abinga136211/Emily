@@ -1,0 +1,49 @@
+// ============================================
+// 本地字体声明 —— Noto Sans SC
+// 100% 自托管，移除 Google Fonts 后无网络依赖
+// 源文件位于 /public/fonts/
+// ============================================
+
+@font-face {
+  font-family: "Noto Sans SC";
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src:
+    local("Noto Sans SC Light"),
+    local("NotoSansSC-Light"),
+    url("/fonts/NotoSansSC-Light.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Noto Sans SC";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src:
+    local("Noto Sans SC Regular"),
+    local("NotoSansSC-Regular"),
+    url("/fonts/NotoSansSC-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Noto Sans SC";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src:
+    local("Noto Sans SC Bold"),
+    local("NotoSansSC-Bold"),
+    url("/fonts/NotoSansSC-Bold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Noto Sans SC";
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src:
+    local("Noto Sans SC Black"),
+    local("NotoSansSC-Black"),
+    url("/fonts/NotoSansSC-Black.woff2") format("woff2");
+}

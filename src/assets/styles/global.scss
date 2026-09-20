@@ -1,0 +1,219 @@
+// ============================================
+// Global Styles — SK Management Consulting
+// （variables / mixins 由 vite additionalData 自动注入）
+// ============================================
+
+@use "@/assets/styles/fonts";
+
+// ---------- Reset ----------
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: $font-family-base;
+  font-weight: $font-regular;
+  font-size: 16px;
+  line-height: 1.6;
+  color: $color-primary-deep;
+  background-color: $color-white;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dd,
+dl {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+}
+
+::selection {
+  background-color: $color-accent;
+  color: $color-white;
+}
+
+// ---------- Base Typography ----------
+h1 {
+  font-size: clamp(32px, 4.5vw, 56px);
+  font-weight: $font-black;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+h2 {
+  font-size: clamp(28px, 3.2vw, 40px);
+  font-weight: $font-black;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: 20px;
+  font-weight: $font-bold;
+  line-height: 1.35;
+}
+
+// 锚点滚动偏移（sticky 头部 80 + 余量 16）
+[id] {
+  scroll-margin-top: calc(#{$header-height} + 16px);
+}
+
+// ---------- Section Head（Eyebrow + H2 + Lead） ----------
+.section-head {
+  max-width: 768px;
+  margin-bottom: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+
+  // 节标题眉标与 h2 同字号，单行显示
+  > p.eyebrow-label {
+    font-size: clamp(28px, 3.2vw, 40px);
+    white-space: nowrap;
+  }
+
+  // 标题单行显示
+  h2 {
+    white-space: nowrap;
+  }
+
+  &__lead {
+    font-size: 17px;
+    line-height: 1.8;
+    color: $text-muted-light;
+  }
+
+  &--on-dark &__lead {
+    color: $text-muted-dark;
+  }
+
+  @include respond-to('l') {
+    margin-bottom: 64px;
+  }
+}
+
+// ---------- Buttons ----------
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 32px;
+  font-size: 15px;
+  font-weight: $font-bold;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  border-radius: $radius-sm;
+  transition:
+    background-color $transition-fast,
+    color $transition-fast,
+    border-color $transition-fast;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &--black {
+    background-color: $color-primary-deep;
+    color: $color-white;
+
+    &:hover {
+      background-color: $color-primary;
+    }
+  }
+
+  &--white {
+    background-color: $color-white;
+    color: $color-primary-deep;
+
+    &:hover {
+      background-color: $color-bg-light;
+    }
+  }
+
+  &--outline-black {
+    border-color: $color-primary-deep;
+    color: $color-primary-deep;
+
+    &:hover {
+      background-color: $color-primary-deep;
+      color: $color-white;
+    }
+  }
+
+  &--outline-white {
+    border-color: $color-white;
+    color: $color-white;
+
+    &:hover {
+      background-color: $color-white;
+      color: $color-primary-deep;
+    }
+  }
+}
+
+// ---------- Arrow Link ----------
+.link-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: $font-bold;
+  border-bottom: 2px solid $color-primary-deep;
+  padding-bottom: 4px;
+  transition: gap $transition-fast;
+
+  &::after {
+    content: '→';
+  }
+
+  &:hover {
+    gap: 16px;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}

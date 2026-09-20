@@ -1,0 +1,65 @@
+// ============================================
+// SK Management Consulting — Design Tokens
+// 机构感蓝金设计系统
+// ============================================
+
+// ---------- Brand Colors ----------
+// 主深蓝（品牌主色 / 深色底 / 强调深色块）
+$color-primary-deep: #0b2a4a;        // 主深蓝 - 深
+$color-primary: #123a5f;             // 主深蓝 - 浅（一档）
+
+// 金色强调（CTA、点缀、eyebrow）
+$color-accent: #c8a24a;              // 金色 - 亮
+$color-accent-deep: #b9933c;         // 金色 - 深（hover / 强对比）
+
+// ---------- Neutrals ----------
+$color-white: #ffffff;               // 主背景白 / 深色底文字
+$color-bg-light: #f5f7fa;            // 浅灰背景（卡片底 / section 底）
+$color-text-body: #6b7280;           // 正文灰（弱化文字）
+$color-text-footer: #9ca3af;         // 页脚浅灰（深底上的次级文字）
+
+// ---------- Semantic text colors（黑底用白 / 白底用深蓝） ----------
+$text-on-light: $color-primary-deep;
+$text-on-dark: $color-white;
+$text-muted-light: $color-text-body;   // 白底上的正文灰
+$text-muted-dark: $color-text-footer;  // 深底上的正文灰
+
+// ---------- Lines ----------
+$line-light: rgba(11, 42, 74, 0.12);          // 浅底分割线（基于主深蓝）
+$line-dark: rgba(255, 255, 255, 0.16);        // 深底分割线
+
+// ---------- Typography ----------
+$font-family-base:
+  'Noto Sans SC',
+  -apple-system,
+  BlinkMacSystemFont,
+  'Helvetica Neue',
+  'PingFang SC',
+  'Hiragino Sans GB',
+  'Microsoft YaHei',
+  sans-serif;
+$font-light: 300;
+$font-regular: 400;
+$font-bold: 700;
+$font-black: 900;
+
+// ---------- Grid & Layout ----------
+$grid-columns: 12;
+$baseline: 8px;
+$max-width: 1920px;
+$header-height: 80px;
+
+// ---------- Breakpoints (min-width) ----------
+// XS: 0-599 / S: 600-767 / M: 768-1023 / L: 1024-1439 / XL: 1440-1920
+$bp-s: 600px;
+$bp-m: 768px;
+$bp-l: 1024px;
+$bp-xl: 1440px;
+
+// ---------- Radius（机构感：无圆角或极小圆角） ----------
+$radius-sm: 2px;
+$radius-md: 4px;
+
+// ---------- Motion ----------
+$ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+$transition-fast: 160ms $ease-standard;
