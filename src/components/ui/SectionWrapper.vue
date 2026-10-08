@@ -57,7 +57,7 @@ withDefaults(defineProps<Props>(), {
 
   &--accent {
     background-color: $color-accent;
-    color: $color-primary-deep;
+    color: $color-white;
   }
 }
 </style>

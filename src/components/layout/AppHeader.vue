@@ -1,45 +1,142 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { content, locale, setLocale } from "@/i18n";
 
-const menuOpen = ref(false);
-const activeSection = ref("top");
+const router = useRouter();
+const route = useRoute();
 
-// 页面区块 → 导航项映射
-const sectionToNav: Record<string, string> = {
-  positioning: "top",
-  services: "services",
-  industries: "industries",
-  about: "about",
-  advantages: "about",
-  security: "about",
-  contact: "contact",
+const menuOpen = ref(false);
+const overHero = ref(true);
+
+let heroObserver: IntersectionObserver | null = null;
+
+const isHome = () => route.name === "home";
+const isNotFound = () => route.name === "not-found";
+
+const pageNameFromPath = (to: string) => {
+  const clean = to.replace(/\/+$/, "");
+  if (clean === "/" || clean === "") return "home";
+  if (clean === "/services" || clean.endsWith("/services")) return "services";
+  if (clean === "/industries" || clean.endsWith("/industries")) return "industries";
+  if (clean === "/about" || clean.endsWith("/about")) return "about";
+  if (clean === "/contact" || clean.endsWith("/contact")) return "contact";
+  return null;
 };
 
-let observer: IntersectionObserver | null = null;
+const activePage = computed(() => {
+  if (route.name === "home") return "home";
+  if (
+    route.name === "services" ||
+    route.name === "industries" ||
+    route.name === "about" ||
+    route.name === "contact"
+  ) {
+    return String(route.name);
+  }
+  return "";
+});
+
+const navKey = (to: string) => pageNameFromPath(to) ?? to;
+
+const updateOverHero = () => {
+  if (isNotFound()) {
+    overHero.value = true;
+    return;
+  }
+
+  if (!isHome()) {
+    overHero.value = false;
+    return;
+  }
+
+  // 首页接近顶部时始终透明，避免刷新/路由重进时滚动位置尚未归零导致误判为 solid
+  if (window.scrollY <= 16) {
+    overHero.value = true;
+    return;
+  }
+
+  const hero = document.getElementById("top");
+  if (!hero) {
+    overHero.value = window.scrollY < window.innerHeight * 0.72;
+    return;
+  }
+  // 用首屏实际可见比例判断，避免 overflow:hidden / scrollTo 时 scroll 事件丢失导致顶栏变白底
+  const rect = hero.getBoundingClientRect();
+  overHero.value = rect.bottom > window.innerHeight * 0.28;
+};
+
+const refreshOverHero = () => {
+  requestAnimationFrame(() => {
+    updateOverHero();
+    requestAnimationFrame(updateOverHero);
+  });
+};
+
+const setupHeroObserver = () => {
+  heroObserver?.disconnect();
+  heroObserver = null;
+
+  if (isNotFound()) {
+    overHero.value = true;
+    return;
+  }
+
+  if (!isHome()) {
+    overHero.value = false;
+    return;
+  }
+
+  const hero = document.getElementById("top");
+  if (!hero) {
+    updateOverHero();
+    return;
+  }
+
+  heroObserver = new IntersectionObserver(
+    () => {
+      updateOverHero();
+    },
+    { threshold: [0, 0.28, 0.72, 1] },
+  );
+  heroObserver.observe(hero);
+  updateOverHero();
+};
+
+const onPageShow = () => {
+  if (isHome() && !window.location.hash) {
+    window.scrollTo(0, 0);
+  }
+  refreshOverHero();
+};
 
 onMounted(() => {
-  const sections = Object.keys(sectionToNav)
-    .map((id) => document.getElementById(id))
-    .filter((el): el is HTMLElement => el !== null);
-
-  observer = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) {
-          activeSection.value = sectionToNav[entry.target.id] ?? "top";
-        }
-      }
-    },
-    { rootMargin: "-160px 0px -55% 0px", threshold: 0 },
-  );
-
-  sections.forEach((section) => observer?.observe(section));
+  setupHeroObserver();
+  refreshOverHero();
+  window.addEventListener("scroll", updateOverHero, { passive: true });
+  window.addEventListener("resize", updateOverHero, { passive: true });
+  window.addEventListener("pageshow", onPageShow);
+  window.addEventListener("load", refreshOverHero);
 });
 
 onBeforeUnmount(() => {
-  observer?.disconnect();
+  heroObserver?.disconnect();
+  window.removeEventListener("scroll", updateOverHero);
+  window.removeEventListener("resize", updateOverHero);
+  window.removeEventListener("pageshow", onPageShow);
+  window.removeEventListener("load", refreshOverHero);
 });
+
+watch(
+  () => route.fullPath,
+  () => {
+    refreshOverHero();
+    requestAnimationFrame(() => {
+      setupHeroObserver();
+      updateOverHero();
+    });
+  },
+);
 
 const toggleMenu = () => {
   menuOpen.value = !menuOpen.value;
@@ -50,32 +147,55 @@ const closeMenu = () => {
 };
 
 watch(menuOpen, (open) => {
-  document.body.style.overflow = open ? "hidden" : "";
+  if (open) {
+    document.body.style.overflow = "hidden";
+    return;
+  }
+  // 首屏轮播锁定时，关闭菜单不要清掉页面锁
+  if (!document.documentElement.classList.contains("hero-intro-locked")) {
+    document.body.style.overflow = "";
+  }
 });
 
-const isActive = (to: string) => activeSection.value === to.replace("#", "");
+const isActive = (to: string) => activePage.value === navKey(to);
 
-const handleNavClick = (event: MouseEvent, to: string) => {
+const handleNavClick = async (event: MouseEvent, to: string) => {
   event.preventDefault();
   closeMenu();
-  if (to === "#top") {
+  // 首屏轮播锁定时，先解锁再执行导航滚动
+  window.dispatchEvent(new Event("skmc:hero-unlock"));
+
+  const page = pageNameFromPath(to);
+  const path =
+    page === "home" || to === "/" || to === "#top"
+      ? "/"
+      : page
+        ? `/${page}`
+        : to.split("#")[0] || "/";
+
+  if (route.path === path || (page === "home" && isHome())) {
     window.scrollTo({ top: 0, behavior: "smooth" });
     return;
   }
-  document
-    .getElementById(to.slice(1))
-    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  await router.push({ path });
 };
 </script>
 
 <template>
-  <header class="app-header">
+  <header
+    class="app-header"
+    :class="{
+      'app-header--over-hero': overHero && !menuOpen,
+      'app-header--solid': !overHero || menuOpen,
+    }"
+  >
     <div class="app-header__inner">
       <a
-        href="#top"
+        href="/"
         class="app-header__brand"
         :aria-label="content.ui.headerHomeAria"
-        @click="handleNavClick($event, '#top')"
+        @click="handleNavClick($event, '/')"
       >
         <img class="app-header__logo" src="/logo.png" alt="" aria-hidden="true" />
         <span class="app-header__wordmark">
@@ -94,7 +214,7 @@ const handleNavClick = (event: MouseEvent, to: string) => {
           class="app-header__link"
           :class="{
             'app-header__link--active': isActive(item.to),
-            'app-header__link--cta': item.to === '#contact',
+            'app-header__link--cta': navKey(item.to) === 'contact',
           }"
           @click="handleNavClick($event, item.to)"
         >
@@ -110,7 +230,7 @@ const handleNavClick = (event: MouseEvent, to: string) => {
           :aria-pressed="locale === 'zh'"
           @click="setLocale('zh')"
         >
-          CN
+          简
         </button>
         <button
           type="button"
@@ -162,11 +282,68 @@ const handleNavClick = (event: MouseEvent, to: string) => {
 
 <style scoped lang="scss">
 .app-header {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 200;
   background-color: $color-white;
   border-bottom: 1px solid $color-bg-light;
+  transition:
+    background-color $transition-fast,
+    border-color $transition-fast,
+    color $transition-fast,
+    backdrop-filter $transition-fast;
+
+  &--over-hero {
+    background-color: transparent;
+    border-bottom-color: transparent;
+    color: $color-white;
+
+    .app-header__tagline {
+      color: rgba(255, 255, 255, 0.78);
+    }
+
+    .app-header__link {
+      &::after {
+        background-color: $color-white;
+      }
+
+      &--cta {
+        background-color: $color-white;
+        color: $color-primary-deep;
+
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.9);
+        }
+      }
+    }
+
+    .app-header__lang-btn {
+      border-color: rgba(255, 255, 255, 0.45);
+      color: $color-white;
+
+      &--active {
+        background-color: $color-white;
+        border-color: $color-white;
+        color: $color-primary-deep;
+      }
+
+      &:hover:not(.app-header__lang-btn--active) {
+        border-color: $color-white;
+      }
+    }
+
+    .app-header__burger span {
+      background-color: $color-white;
+    }
+  }
+
+  &--solid {
+    background-color: $color-white;
+    border-bottom-color: $color-bg-light;
+    color: $color-primary-deep;
+  }
 
   &__inner {
     @include container;

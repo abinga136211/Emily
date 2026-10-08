@@ -11,14 +11,14 @@ interface Props {
   variant?: 'primary' | 'white'
   image?: string
   imageAlt?: string
-  /** 自定义背景色（如 #C8A24A）；设置后文字自动切换为深色以保证可读性 */
+  /** 自定义背景色（如 #1A1A1A）；设置后文字自动切换为深色以保证可读性 */
   bg?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   subtitle: '',
   ctaText: '',
-  ctaTo: '#contact',
+  ctaTo: '/contact',
   variant: 'white',
   image: '',
   imageAlt: '',
@@ -115,6 +115,11 @@ const handleCtaClick = (event: MouseEvent) => {
 
   &__title {
     max-width: 20ch;
+  }
+
+  // 眉标与副标题同字号
+  p.hero__eyebrow {
+    font-size: 17px;
   }
 
   &__subtitle {

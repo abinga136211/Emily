@@ -1,25 +1,44 @@
 <script setup lang="ts">
+import { useRoute, useRouter } from "vue-router";
 import { content } from "@/i18n";
+import { displayChannels } from "@/composables/useSiteConfig";
 import logoUrl from "/logo.png";
 
-const handleNavClick = (event: MouseEvent, to: string) => {
+const router = useRouter();
+const route = useRoute();
+
+const isHome = () => route.name === "home";
+
+const pagePath = (to: string) => {
+  const clean = to.replace(/\/+$/, "").split("#")[0] || "/";
+  if (clean === "" || clean === "/" || to === "#top") return "/";
+  return clean.startsWith("/") ? clean : `/${clean}`;
+};
+
+const handleNavClick = async (event: MouseEvent, to: string) => {
   event.preventDefault();
-  if (to === "#top") {
+  window.dispatchEvent(new Event("skmc:hero-unlock"));
+
+  const path = pagePath(to);
+  if ((path === "/" && isHome()) || route.path === path) {
     window.scrollTo({ top: 0, behavior: "smooth" });
     return;
   }
-  document
-    .getElementById(to.slice(1))
-    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  await router.push({ path });
 };
 
-// 服务深链：切到对应卡片并滚动到服务区块
-const handleServiceClick = (event: MouseEvent, id: string) => {
+const handleServiceClick = async (event: MouseEvent, id: string) => {
   event.preventDefault();
-  window.dispatchEvent(new CustomEvent("service:show", { detail: id }));
-  document
-    .getElementById("services")
-    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  window.dispatchEvent(new Event("skmc:hero-unlock"));
+  if (route.name !== "services") {
+    await router.push({ path: "/services", hash: `#${id}` });
+  } else {
+    requestAnimationFrame(() => {
+      document
+        .getElementById(id)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
 };
 </script>
 
@@ -29,10 +48,10 @@ const handleServiceClick = (event: MouseEvent, id: string) => {
       <div class="app-footer__grid">
         <div class="app-footer__brand">
           <a
-            href="#top"
+            href="/"
             class="app-footer__logo-row"
             :aria-label="content.ui.headerHomeAria"
-            @click="handleNavClick($event, '#top')"
+            @click="handleNavClick($event, '/')"
           >
             <img class="app-footer__logo" :src="logoUrl" alt="" aria-hidden="true" />
           </a>
@@ -58,7 +77,7 @@ const handleServiceClick = (event: MouseEvent, id: string) => {
           <a
             v-for="service in content.services"
             :key="service.id"
-            :href="`#${service.id}`"
+            :href="`/services#${service.id}`"
             class="app-footer__link"
             @click="handleServiceClick($event, service.id)"
           >
@@ -68,7 +87,7 @@ const handleServiceClick = (event: MouseEvent, id: string) => {
 
         <div class="app-footer__col">
           <p class="app-footer__col-title">{{ content.ui.footerContactTitle }}</p>
-          <template v-for="channel in content.contactChannels" :key="channel.label">
+          <template v-for="channel in displayChannels" :key="channel.id || channel.label">
             <a
               v-if="channel.href"
               :href="channel.href"
@@ -172,10 +191,10 @@ const handleServiceClick = (event: MouseEvent, id: string) => {
   }
 
   &__col-title {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: $font-bold;
     letter-spacing: 0.12em;
-    color: $text-muted-dark;
+    color: $color-white;
     margin-bottom: 16px;
   }
 
@@ -206,7 +225,7 @@ const handleServiceClick = (event: MouseEvent, id: string) => {
 
   &__contact-label {
     display: block;
-    font-size: 12px;
+    font-size: 15px;
     color: $text-muted-dark;
     letter-spacing: 0.08em;
   }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import type { AdvantageItem } from '@/data/content'
 
 interface Props {
@@ -6,11 +7,58 @@ interface Props {
 }
 
 defineProps<Props>()
+
+const rootEl = ref<HTMLElement | null>(null)
+const inView = ref(false)
+
+let observer: IntersectionObserver | null = null
+
+onMounted(() => {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (reduceMotion) {
+    inView.value = true
+    return
+  }
+
+  const el = rootEl.value
+  if (!el) return
+
+  const rect = el.getBoundingClientRect()
+  const vh = window.innerHeight
+  if (rect.top < vh * 0.88 && rect.bottom > vh * 0.1) {
+    inView.value = true
+    return
+  }
+
+  observer = new IntersectionObserver(
+    ([entry]) => {
+      if (!entry?.isIntersecting) return
+      inView.value = true
+      observer?.disconnect()
+      observer = null
+    },
+    { threshold: 0.18, rootMargin: '0px 0px -8% 0px' }
+  )
+  observer.observe(el)
+})
+
+onBeforeUnmount(() => {
+  observer?.disconnect()
+  observer = null
+})
 </script>
 
 <template>
-  <ul class="advantage-grid">
-    <li v-for="(item, index) in items" :key="item.title" class="advantage-grid__item">
+  <ul
+    ref="rootEl"
+    class="advantage-grid"
+    :class="{ 'advantage-grid--inview': inView }"
+  >
+    <li
+      v-for="(item, index) in items"
+      :key="item.title"
+      class="advantage-grid__item"
+    >
       <span class="advantage-grid__num" aria-hidden="true">
         {{ String(index + 1).padStart(2, '0') }}
       </span>
@@ -40,6 +88,25 @@ defineProps<Props>()
     display: flex;
     flex-direction: column;
     gap: 16px;
+    opacity: 0;
+    transform: translateY(36px);
+    clip-path: inset(100% 0 0 0);
+    transition:
+      opacity 720ms $ease-standard,
+      transform 800ms $ease-standard,
+      clip-path 800ms $ease-standard;
+
+    @for $i from 1 through 3 {
+      &:nth-child(#{$i}) {
+        transition-delay: #{($i - 1) * 140ms};
+      }
+    }
+  }
+
+  &--inview &__item {
+    opacity: 1;
+    transform: translateY(0);
+    clip-path: inset(0 0 0 0);
   }
 
   &__num {
@@ -56,7 +123,16 @@ defineProps<Props>()
   &__desc {
     font-size: 15px;
     line-height: 1.8;
-    color: $text-muted-dark;
+    color: $text-muted-light;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .advantage-grid__item {
+    opacity: 1;
+    transform: none;
+    clip-path: none;
+    transition: none;
   }
 }
 </style>

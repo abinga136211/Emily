@@ -5,8 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:server": "npm run dev --prefix server",
+    "dev:all": "concurrently -n web,api -c cyan,magenta \"npm run dev\" \"npm run dev:server\"",
     "build": "vite build",
-    "serve": "vite preview"
+    "build:server": "vite build --base=/ && npm run build --prefix server",
+    "start": "npm run start --prefix server",
+    "serve": "vite preview",
+    "postinstall": "npm install --prefix server"
   },
   "dependencies": {
     "vue": "^3.4.38",
@@ -15,6 +20,7 @@
   "devDependencies": {
     "@types/node": "^20.14.15",
     "@vitejs/plugin-vue": "^5.1.2",
+    "concurrently": "^9.2.4",
     "gh-pages": "^6.3.0",
     "sass": "^1.77.8",
     "typescript": "~5.5.4",

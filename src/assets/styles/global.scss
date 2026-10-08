@@ -15,6 +15,12 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+
+  &.hero-intro-locked,
+  &.hero-intro-locked body {
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
 }
 
 body {
@@ -107,15 +113,13 @@ h3 {
   align-items: flex-start;
   gap: 16px;
 
-  // 节标题眉标与 h2 同字号，单行显示
+  // 节标题眉标与 h2 同字号；过长时允许换行，避免被裁切
   > p.eyebrow-label {
     font-size: clamp(28px, 3.2vw, 40px);
-    white-space: nowrap;
   }
 
-  // 标题单行显示
   h2 {
-    white-space: nowrap;
+    text-wrap: balance;
   }
 
   &__lead {

@@ -9,6 +9,13 @@ node_modules/
 
 # Build output
 dist/
+server/dist/
+
+# SQLite
+server/data/*.db
+server/data/*.db-*
+*.db
+*.db-*
 
 # Editor
 .vscode/
@@ -23,3 +30,4 @@ Thumbs.db
 # Environment
 .env
 .env.local
+server/.env
